@@ -25,7 +25,7 @@ library("quantmod") #Package to download financials historical data
 library(forecast)
 library("fGarch")
 library(vars)
-
+library(tseries)
 #funciones
 archTest <- function(rtn,m=10){
   # Perform Lagrange Multiplier Test for ARCH effect of a time series
@@ -205,11 +205,6 @@ BMW.DE.ret <- diff(log(Ad(BMW.DE)))
 VOW.DE.ret <- diff(log(Ad(VOW.DE)))
 ```
 
-
-```{r, include=FALSE}
-dataDaily <- na.omit(merge(BMW.DE.ret,VOW.DE.ret), join='inner')
-```
-
 ```{r, include=FALSE}
 BMW.DE.ret <- to.monthly(BMW.DE.ret)$BMW.DE.ret.Close #retornos mensuales
 VOW.DE.ret <- to.monthly(VOW.DE.ret)$VOW.DE.ret.Close
@@ -223,6 +218,8 @@ vY=cbind(BMW.DE.ret,VOW.DE.ret) #vector con los dos rendimientos
 colnames(vY)=c("BMW","VOW") #le ponemos nombres
 vY=na.omit(vY) #omitimos los na
 
+adf.test(vY$BMW) #Al ser el p value <0.05 decimos que la serie es estacionaria
+adf.test(vY$VOW) #Al ser el p value <0.05 decimos que la serie es estacionaria
 #Seleccionar modelo
 
 VARselect(vY) #selecciona el orden 1 para los 4 tipos de indicadores de seleccion de modelos VAR
