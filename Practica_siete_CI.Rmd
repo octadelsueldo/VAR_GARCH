@@ -1,0 +1,88 @@
+---
+title: "Causal Impact - BMW/VOW"
+author: "Hugo César Octavio del Sueldo"
+date: "12/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Objetivo
+
+El objetivo del trabajo es explicar el efecto que tuvo en los valores de las series de tiempo de BMW y VOW el hecho sucedido en 2016 mejor conocido como diesel gate donde Volkswagen había instalado ilegalmente un software para alterar los resultados de los controles técnicos de emisiones contaminantes en 11 millones de automóviles con motor diésel, vendidos entre 2009 y 2015. Como resultado de este fraude, sus motores habían superado con creces los estándares de la Agencia de Protección Ambiental de Estados Unidos (EPA). Los vehículos implicados emiten en condiciones reales hasta 40 veces el límite legal de óxidos de nitrógeno.
+
+En octubre de 2016 Volkswagen pactó con las autoridades de Estados Unidos pagar 17 500 millones de USD como compensación a los propietarios de los vehículos afectados y a los concesionarios. En Estados Unidos deberá pagar al Departamento de Justicia una multa de 4300 millones de USD (4100 millones de euros)
+
+```{r libraries, include=FALSE}
+# load required packages
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(xts)
+library(tseries)
+library(CausalImpact)
+```
+
+
+```{r}
+#periodo inicial
+start = "2014-01-01"
+treatment = "2015-09-01"
+end = "2020-11-01"
+
+#definimos pre y post periodo 
+pre.period = as.Date(c(start, treatment))
+post.period = as.Date(c(treatment, end))
+
+```
+
+```{r}
+#Cargamos ahora los datos de BMW y de Volkswagen
+Volkswagen = get.hist.quote(instrument = 'VOW.DE',
+                            start = start,
+                            end = end,
+                            quote = 'Adj',
+                            compression = 'w')
+BMW = get.hist.quote(instrument = 'BMW.DE',
+                            start = start,
+                            end = end,
+                            quote = 'Adj',
+                            compression = 'w')
+
+BMW=na.omit(BMW)
+Volkswagen=na.omit(Volkswagen)
+```
+
+```{r}
+#Ahora combinamos nuestras acciones juntas
+
+stocks <- cbind(Volkswagen, BMW)
+```
+
+```{r}
+# ahora utilizamos CausalImpact para observar
+
+impact <- CausalImpact(data = stocks,
+                       pre.period = pre.period,
+                       post.period = post.period)
+
+#chequeamos los resultados
+summary(impact)
+plot(impact)
+plot(impact, "original")
+```
+
+
+Aqui podemos observar en el grafico acumulado como luego del escandalo sucedido la tendencia de los precios de de Volkswagen fue a la baja desde ese periodo. Al mismo tiempo, en el summary podemos visualizar en los efectos relativos que la  accion de Volkswagen perdio un 14% desde ese momento hasta el final de periodo que estamos analizando. Esto incluso fue mucho mayor si observamos la grafica en los periodos hasta 2016 y 2017
+
+
+```{r}
+summary(impact, "report")
+```
+
+
+
+
