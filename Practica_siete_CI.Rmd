@@ -60,7 +60,10 @@ Volkswagen=na.omit(Volkswagen)
 #Ahora combinamos nuestras acciones juntas
 
 stocks <- cbind(Volkswagen, BMW)
+stocks_alreves <- cbind(BMW, Volkswagen)
 ```
+
+## Causal Impact Volkswagen
 
 ```{r}
 # ahora utilizamos CausalImpact para observar
@@ -84,5 +87,23 @@ summary(impact, "report")
 ```
 
 
+## CausalImpact BMW
 
+
+```{r}
+impact_BMW <- CausalImpact(data = stocks_alreves,
+                       pre.period = pre.period,
+                       post.period = post.period)
+
+#chequeamos los resultados
+summary(impact_BMW)
+plot(impact_BMW)
+plot(impact_BMW, "original")
+```
+
+Aqui podemos observar en el grafico acumulado como luego del escandalo sucedido la tendencia de los precios de BMW fue al alza desde ese periodo. Al mismo tiempo, en el summary podemos visualizar en los efectos relativos que la  accion de BMW crecio un 11% desde ese momento hasta el final de periodo que estamos analizando. En este caso particular estamos analizando un periodo largo desde lo sucedido en ese momento, pero, si observamos la serie en los periodos de 2016 y 2017 el alza a causa del diesel gate fue mucho mayor.
+
+```{r}
+summary(impact_BMW, "report")
+```
 
