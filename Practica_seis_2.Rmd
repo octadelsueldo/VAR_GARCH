@@ -1,0 +1,73 @@
+---
+title: "Cointegracion - BMW / VOW"
+author: "Hugo César Octavio del Sueldo"
+date: "12/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Objetivo
+
+El objetivo de esta practica es responder a la pregunta de si existe o no existe cointegracion entre las acciones de BMW y de Volkswagen. Para esto procederemos realizando los diferentes testeos de Dickey Fuller y Dickey Fuller Aumentado. Tambien realizaremos un modelo de regresion lineal entre las dos variables y luego analizaremos sus residuales para verificar si estan o no cointegrados entre si.
+
+```{r, include=FALSE}
+library(quantmod)
+library(tseries)
+getSymbols('BMW.DE', from='2014-01-01', to='2020-10-30')
+getSymbols('VOW.DE', from='2014-01-01', to='2020-10-30')
+
+```
+
+
+
+```{r}
+#Calculamos la primera diferencia para hacerlas estacionarias
+BMW.DE.ret <- diff(log(Ad(BMW.DE))) 
+VOW.DE.ret <- diff(log(Ad(VOW.DE)))
+```
+
+```{r, include=FALSE}
+BMW.DE.ret <- to.monthly(BMW.DE.ret)$BMW.DE.ret.Close #retornos mensuales
+VOW.DE.ret <- to.monthly(VOW.DE.ret)$VOW.DE.ret.Close
+```
+
+
+```{r}
+#generar vector
+
+vY=cbind(BMW.DE.ret,VOW.DE.ret) #vector con los dos rendimientos
+colnames(vY)=c("BMW","VOW") #le ponemos nombres
+vY=na.omit(vY) #omitimos los na
+
+plot(vY)
+
+adf.test(vY$BMW) #Al ser el p value <0.05 decimos que la serie es estacionaria
+adf.test(vY$VOW) #Al ser el p value <0.05 decimos que la serie es estacionaria
+```
+
+
+
+```{r}
+library(car)
+modelo1 <- lm(vY$BMW ~ vY$VOW)
+summary(modelo1)
+residuals <- modelo1$residuals
+summary(residuals)
+residualPlot(modelo1)
+```
+
+
+Al observar el residualPlot podemos deducir que los residuales son estacionarios ya que los errores estan alrededor de la media entonces podemos decir que las variables BMW y Volkswagen estan cointegradas
+
+```{r}
+adf.test(residuals) 
+
+library(urca) 
+test_1<-ur.df(residuals,type="tren",selectlags="AIC",lags=10) #seleciona con aic el k como maximo 10
+summary(test_1)
+```
+
+Lo que pudimos observar en el grafico de los residuales lo terminamos de confirmar con la prueba de Dickey Fuller ya que al ser un pvalue menor a .05 podemos decir que los residuales son estacionarios. Luego al practicar el test de Dickey Fuller Aumentado podemos observar de los resultados que con un valor de -5.2674 lo que es mayor a -3.15 lo que nos indica es que caemos en la region de rechazo de H0, es decir, lo que significa es que no existe raiz unitaria y por lo tanto son estacionarios los errores con lo cual concluimos que si existe cointegracion entre BMW y Volkwagen
